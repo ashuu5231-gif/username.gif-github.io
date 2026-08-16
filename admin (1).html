@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — YourPitch</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#f6f1e4; --panel:#fffdf7; --panel2:#f1ead8; --line:#dcd0ac; --text:#1e2b20;
+    --muted:#6b7a63; --accent:#2f9e52; --amber:#c98a1f; --danger:#c0392b; --blue:#1f6f8b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh;
+    background-image:linear-gradient(rgba(47,158,82,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(47,158,82,.04) 1px, transparent 1px);
+    background-size:32px 32px;
+  }
+  a{color:inherit;text-decoration:none;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  nav{background:#0b2e1a;display:flex;align-items:center;justify-content:space-between;
+    padding:0 2rem;height:60px;border-bottom:1px solid var(--line);}
+  .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.15rem;letter-spacing:1px;color:#fff;}
+  .logo span{color:var(--accent);}
+  .nav-links{display:flex;gap:.4rem;}
+  .nav-links a{color:#cfd8c8;font-size:.82rem;font-weight:600;padding:.5rem .9rem;border-radius:6px;transition:.2s;}
+  .nav-links a:hover,.nav-links a.active{color:#fff;background:rgba(255,255,255,.1);}
+
+  .admin-login{max-width:380px;margin:5rem auto;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:2.2rem;text-align:center;box-shadow:0 2px 18px rgba(11,46,26,.08);}
+  .admin-login .icon{font-size:2.2rem;margin-bottom:.6rem;}
+  .admin-login h2{font-family:'JetBrains Mono',monospace;font-size:1.2rem;letter-spacing:1px;margin-bottom:.3rem;color:#0b2e1a;}
+  .admin-login p{color:var(--muted);font-size:.82rem;margin-bottom:1.4rem;}
+  .admin-login input{width:100%;padding:.7rem .9rem;border:1px solid var(--line);border-radius:6px;font-size:.88rem;
+    font-family:'Inter',sans-serif;margin-bottom:.7rem;outline:none;background:var(--panel2);color:var(--text);}
+  .admin-login input:focus{border-color:var(--accent);}
+  .admin-login button{width:100%;padding:.75rem;background:var(--accent);color:#fff;border:none;border-radius:6px;
+    font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+  .admin-login button:hover{background:#278444;}
+  .error-msg{color:var(--danger);font-size:.8rem;margin-bottom:.5rem;}
+  .hint{font-size:.72rem;color:var(--muted);margin-top:.8rem;}
+
+  .dashboard{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+  .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.6rem;}
+  .dash-header h2{font-family:'JetBrains Mono',monospace;font-size:1.15rem;letter-spacing:.5px;color:var(--text);}
+  .dash-header .sub{color:var(--muted);font-size:.78rem;margin-top:.15rem;}
+  .logout-btn{background:rgba(255,92,92,.1);color:var(--danger);border:1px solid rgba(255,92,92,.3);padding:.4rem 1rem;
+    border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+
+  .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem;}
+  .dash-stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1.1rem;position:relative;overflow:hidden;}
+  .dash-stat::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--stat-color, var(--accent));}
+  .dash-stat .stat-num{font-family:'JetBrains Mono',monospace;font-size:1.9rem;font-weight:700;line-height:1;margin-bottom:.3rem;}
+  .dash-stat .stat-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
+  .stat-pending{--stat-color:var(--amber);color:var(--amber);}
+  .stat-confirmed{--stat-color:var(--accent);color:var(--accent);}
+  .stat-cancelled{--stat-color:var(--danger);color:var(--danger);}
+  .stat-revenue{--stat-color:var(--blue);color:var(--blue);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1.3rem;margin-bottom:1.5rem;}
+  .panel-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.6px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;}
+
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-header{text-align:center;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;padding:.4rem;}
+  .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:.78rem;
+    font-weight:500;background:var(--panel2);position:relative;font-family:'JetBrains Mono',monospace;}
+  .cal-day.today{background:rgba(47,158,82,.14);color:var(--accent);font-weight:700;border:1px solid var(--accent);}
+  .cal-day.has-booking::after{content:'';width:4px;height:4px;background:var(--amber);border-radius:50%;position:absolute;bottom:4px;}
+  .cal-day.empty{background:transparent;}
+  .cal-nav{display:flex;gap:.4rem;}
+  .cal-nav button{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:.3rem .7rem;
+    border-radius:5px;cursor:pointer;font-size:.8rem;}
+
+  .tab-row{display:flex;gap:.5rem;margin-bottom:1rem;}
+  .tab{padding:.4rem .9rem;border-radius:16px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid var(--line);
+    background:var(--panel2);color:var(--muted);font-family:'Inter',sans-serif;transition:.15s;}
+  .tab.active{border-color:var(--accent);background:rgba(47,158,82,.12);color:var(--accent);}
+
+  .bookings-table{width:100%;border-collapse:collapse;}
+  .bookings-table th{background:var(--panel2);color:var(--muted);font-size:.68rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.5px;padding:.65rem .7rem;text-align:left;border-bottom:1px solid var(--line);}
+  .bookings-table td{padding:.7rem;border-bottom:1px solid var(--line);font-size:.82rem;}
+  .bookings-table tr:hover td{background:rgba(47,158,82,.04);}
+  .ref-mono{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:.8rem;}
+
+  .status-badge{display:inline-block;padding:.2rem .55rem;border-radius:10px;font-size:.68rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.4px;}
+  .badge-pending{background:rgba(201,138,31,.15);color:var(--amber);}
+  .badge-confirmed{background:rgba(47,158,82,.15);color:var(--accent);}
+  .badge-cancelled{background:rgba(192,57,43,.15);color:var(--danger);}
+
+  .action-btn{padding:.3rem .7rem;border-radius:5px;font-size:.72rem;font-weight:700;cursor:pointer;border:none;
+    font-family:'Inter',sans-serif;margin-right:.3rem;transition:opacity .2s;}
+  .action-btn:hover{opacity:.8;}
+  .btn-confirm{background:var(--accent);color:#fff;}
+  .btn-reject{background:var(--danger);color:#fff;}
+  .btn-wa{background:#25d366;color:#04230f;}
+
+  .empty-state{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+  .empty-state .empty-icon{font-size:2.2rem;margin-bottom:.5rem;}
+
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    padding:.8rem 1.3rem;border-radius:8px;font-size:.85rem;z-index:9999;opacity:0;transform:translateY(10px);
+    transition:all .3s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.success{border-left:3px solid var(--accent);}
+  .toast.error{border-left:3px solid var(--danger);}
+
+  @media (max-width:640px){
+    .dash-stats{grid-template-columns:repeat(2,1fr);}
+    .bookings-table{font-size:.75rem;}
+  }
+
+  /* CRICKET BALL LOADER */
+  .page-loader{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;
+    z-index:99999;transition:opacity .3s ease, visibility .3s ease;}
+  .page-loader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+  .cricket-ball{width:46px;height:46px;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 32% 28%, #d1543f, #96271b);
+    box-shadow:0 6px 14px rgba(0,0,0,.25); animation:ball-spin .9s linear infinite;}
+  .cricket-ball::before,.cricket-ball::after{content:'';position:absolute;top:2px;bottom:2px;left:50%;width:0;
+    border-left:2px dashed rgba(255,255,255,.85);}
+  .cricket-ball::before{transform:translateX(-50%) rotate(12deg);}
+  .cricket-ball::after{transform:translateX(-50%) rotate(-12deg);}
+  @keyframes ball-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="page-loader"><div class="cricket-ball"></div></div>
+
+<nav>
+  <div class="logo mono">Your<span>Pitch</span> // admin</div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="my-bookings.html">My Bookings</a>
+    <a href="admin.html" class="active">Admin</a>
+  </div>
+</nav>
+
+<div id="admin-login-section">
+  <div class="admin-login">
+    <div class="icon">🔐</div>
+    <h2>ADMIN ACCESS</h2>
+    <p>Manage bookings, payments &amp; slot confirmations</p>
+    <div id="login-error" class="error-msg" style="display:none"></div>
+    <input type="text" id="admin-user" placeholder="Username" value="admin"/>
+    <input type="password" id="admin-pass" placeholder="Password" value=""/>
+    <button onclick="adminLogin()">Login to Dashboard</button>
+    <p class="hint">Default: admin / pitch123</p>
+  </div>
+</div>
+
+<div id="admin-dashboard" style="display:none">
+  <div class="dashboard">
+    <div class="dash-header">
+      <div>
+        <h2>📋 BOOKING_DASHBOARD</h2>
+        <div class="sub">Live view of every slot request</div>
+      </div>
+      <button class="logout-btn" onclick="adminLogout()">Logout</button>
+    </div>
+
+    <div class="dash-stats">
+      <div class="dash-stat stat-pending"><div class="stat-num" id="stat-pending">0</div><div class="stat-label">Pending</div></div>
+      <div class="dash-stat stat-confirmed"><div class="stat-num" id="stat-confirmed">0</div><div class="stat-label">Confirmed</div></div>
+      <div class="dash-stat stat-cancelled"><div class="stat-num" id="stat-cancelled">0</div><div class="stat-label">Cancelled</div></div>
+      <div class="dash-stat stat-revenue"><div class="stat-num" id="stat-revenue">₹0</div><div class="stat-label">Revenue</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span id="cal-month-label">MONTH</span>
+        <div class="cal-nav"><button onclick="changeMonth(-1)">◀</button><button onclick="changeMonth(1)">▶</button></div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+
+    <div class="panel">
+      <div class="tab-row">
+        <button class="tab active" onclick="filterBookings('all', this)">All</button>
+        <button class="tab" onclick="filterBookings('pending', this)">Pending</button>
+        <button class="tab" onclick="filterBookings('confirmed', this)">Confirmed</button>
+        <button class="tab" onclick="filterBookings('cancelled', this)">Cancelled</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="bookings-table">
+          <thead><tr><th>Ref</th><th>Name</th><th>Phone</th><th>Date</th><th>Slot</th><th>Hrs</th><th>Amount</th><th>UTR</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="bookings-tbody"></tbody>
+        </table>
+      </div>
+      <div id="empty-bookings" class="empty-state" style="display:none">
+        <div class="empty-icon">📭</div><p>No bookings found for this filter.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, collection, doc, updateDoc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDjYigTG2R78Qi7e7e_Yeog4xg5TcrFYAQ",
+  authDomain: "yourpitch-booking.firebaseapp.com",
+  projectId: "yourpitch-booking",
+  storageBucket: "yourpitch-booking.firebasestorage.app",
+  messagingSenderId: "759581542137",
+  appId: "1:759581542137:web:ddbb0944380d516b8c0428"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const bookingsCol = collection(db, 'bookings');
+
+const ADMIN_CREDS = { user:'admin', pass:'pitch123' };
+const BUSINESS_NAME = 'YourPitch';
+
+let bookings = [];
+let adminLoggedIn = false;
+let calendarDate = new Date();
+let currentFilter = 'all';
+
+function formatHour(h){ const ampm=h<12?'AM':'PM'; const d=h===0?12:h>12?h-12:h; return `${d}:00 ${ampm}`; }
+function formatDate(dateStr){ if(!dateStr) return ''; const [y,m,d]=dateStr.split('-'); return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+function showToast(msg,type='success'){ const t=document.getElementById('toast'); t.textContent=msg; t.className=`toast show ${type}`; setTimeout(()=>t.classList.remove('show'),3000); }
+
+function buildClientWaLink(b){
+  const msg = `Hi ${b.name}, your ${BUSINESS_NAME} booking ${b.ref} for ${formatDate(b.date)} (${formatHour(b.fromHour)} - ${formatHour(b.toHour)}) is now CONFIRMED. See you at the ground!`;
+  return `https://wa.me/91${b.phone}?text=${encodeURIComponent(msg)}`;
+}
+
+function adminLogin(){
+  const u=document.getElementById('admin-user').value, p=document.getElementById('admin-pass').value;
+  const err=document.getElementById('login-error');
+  if(u===ADMIN_CREDS.user && p===ADMIN_CREDS.pass){
+    adminLoggedIn=true;
+    document.getElementById('admin-login-section').style.display='none';
+    document.getElementById('admin-dashboard').style.display='block';
+    renderDashboard();
+  } else { err.textContent='Invalid username or password.'; err.style.display='block'; }
+}
+function adminLogout(){
+  adminLoggedIn=false;
+  document.getElementById('admin-login-section').style.display='block';
+  document.getElementById('admin-dashboard').style.display='none';
+  document.getElementById('admin-pass').value='';
+}
+function renderDashboard(){
+  if(!adminLoggedIn) return;
+  updateStats(); renderCalendar(); renderBookingsTable(currentFilter);
+}
+function updateStats(){
+  const pending=bookings.filter(b=>b.status==='pending').length;
+  const confirmed=bookings.filter(b=>b.status==='confirmed').length;
+  const cancelled=bookings.filter(b=>b.status==='cancelled').length;
+  const revenue=bookings.filter(b=>b.status==='confirmed').reduce((s,b)=>s+b.total,0);
+  document.getElementById('stat-pending').textContent=pending;
+  document.getElementById('stat-confirmed').textContent=confirmed;
+  document.getElementById('stat-cancelled').textContent=cancelled;
+  document.getElementById('stat-revenue').textContent='₹'+revenue.toLocaleString();
+}
+async function confirmBooking(ref){
+  const b=bookings.find(x=>x.ref===ref); if(!b) return;
+  const conflicts=bookings.filter(x=>x.ref!==ref && x.status==='confirmed' && x.date===b.date && b.fromHour<x.toHour && b.toHour>x.fromHour);
+  if(conflicts.length>0){ showToast('Conflict with confirmed booking '+conflicts[0].ref,'error'); return; }
+  try{
+    await updateDoc(doc(db,'bookings',b.id), { status:'confirmed' });
+  }catch(err){ showToast('Could not update — check connection.','error'); return; }
+  showToast('Booking '+ref+' confirmed!','success');
+  window.open(buildClientWaLink(b), '_blank');
+}
+async function cancelBooking(ref){
+  const b=bookings.find(x=>x.ref===ref); if(!b) return;
+  try{
+    await updateDoc(doc(db,'bookings',b.id), { status:'cancelled' });
+  }catch(err){ showToast('Could not update — check connection.','error'); return; }
+  showToast('Booking '+ref+' cancelled.','error');
+}
+function filterBookings(filter, el){
+  currentFilter=filter;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderBookingsTable(filter);
+}
+function renderBookingsTable(filter){
+  let filtered = filter==='all' ? bookings : bookings.filter(b=>b.status===filter);
+  filtered = filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody=document.getElementById('bookings-tbody'), empty=document.getElementById('empty-bookings');
+  if(filtered.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = filtered.map(b => `
+    <tr>
+      <td class="ref-mono">${b.ref}</td>
+      <td>${b.name}</td>
+      <td>${b.phone}</td>
+      <td>${formatDate(b.date)}</td>
+      <td>${formatHour(b.fromHour)}–${formatHour(b.toHour)}</td>
+      <td>${b.hours}h</td>
+      <td>₹${b.total.toLocaleString()}</td>
+      <td class="mono" style="font-size:.72rem;color:var(--muted)">${b.paymentMethod==='cod' ? '💵 COD' : (b.utr || '—')}</td>
+      <td><span class="status-badge badge-${b.status}">${b.status}</span></td>
+      <td>
+        ${b.status==='pending' ? `<button class="action-btn btn-confirm" onclick="confirmBooking('${b.ref}')">✓ Confirm</button><button class="action-btn btn-reject" onclick="cancelBooking('${b.ref}')">✗ Cancel</button>` : ''}
+        ${b.status==='confirmed' ? `<button class="action-btn btn-wa" onclick="window.open(buildClientWaLink(bookings.find(x=>x.ref==='${b.ref}')),'_blank')">📲 WhatsApp</button><button class="action-btn btn-reject" onclick="cancelBooking('${b.ref}')">✗ Cancel</button>` : ''}
+        ${b.status==='cancelled' ? '<span style="color:var(--muted);font-size:.75rem">—</span>' : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+function renderCalendar(){
+  const grid=document.getElementById('calendar-grid'), label=document.getElementById('cal-month-label');
+  const year=calendarDate.getFullYear(), month=calendarDate.getMonth();
+  label.textContent = new Date(year,month,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}).toUpperCase();
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = days.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  const first=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
+    const hasB = bookings.some(b=>b.date===dateStr && b.status!=='cancelled');
+    html += `<div class="cal-day ${isToday?'today':''} ${hasB?'has-booking':''}" title="${dateStr}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+function changeMonth(delta){ calendarDate.setMonth(calendarDate.getMonth()+delta); renderCalendar(); }
+
+// ============================================================
+//  LIVE SYNC — updates the dashboard the instant any device books
+// ============================================================
+onSnapshot(bookingsCol, (snapshot) => {
+  bookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderDashboard();
+  document.getElementById('page-loader').classList.add('hide');
+}, (err) => {
+  showToast('Connection to booking database failed.','error');
+  document.getElementById('page-loader').classList.add('hide');
+});
+
+Object.assign(window, {
+  adminLogin, adminLogout, confirmBooking, cancelBooking, filterBookings, changeMonth, buildClientWaLink
+});
+</script>
+</body>
+</html>

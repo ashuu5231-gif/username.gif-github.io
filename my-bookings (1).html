@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Bookings — YourPitch</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --paper:#f4ecd8; --paper-dark:#e6d9b8; --ink:#241f13; --muted:#7a6f52;
+    --stamp-green:#1f7a4d; --stamp-red:#b3392c; --stamp-amber:#a97418; --line:#cbb98f;
+    --pitch-dark:#0b2e1a; --floodlight:#ffb703;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',sans-serif; color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,.045) 1px, transparent 0);
+    background-size: 14px 14px;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+
+  nav{background:var(--pitch-dark);display:flex;align-items:center;justify-content:space-between;
+    padding:0 2rem;height:64px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--floodlight);}
+  .logo{font-family:'Courier Prime',monospace;font-weight:700;font-size:1.4rem;color:#fff;letter-spacing:1px;}
+  .logo span{color:var(--floodlight);}
+  .nav-links{display:flex;gap:.4rem;}
+  .nav-links a{color:#cfd8d1;font-size:.85rem;font-weight:600;padding:.5rem .9rem;border-radius:6px;transition:.2s;}
+  .nav-links a:hover,.nav-links a.active{color:#fff;background:rgba(255,255,255,.1);}
+  .nav-links a.admin-link{background:var(--floodlight);color:var(--pitch-dark);}
+
+  .header-band{background:var(--paper-dark);border-bottom:2px dashed var(--line);padding:2.2rem 1.5rem 1.6rem;text-align:center;}
+  .header-band h1{font-family:'Courier Prime',monospace;font-weight:700;font-size:1.9rem;letter-spacing:1px;}
+  .header-band p{color:var(--muted);font-size:.88rem;margin-top:.4rem;}
+
+  .section{max-width:760px;margin:0 auto;padding:2.2rem 1.5rem;}
+
+  .lookup-card{background:#fffdf7;border:1.5px solid var(--line);border-radius:6px;padding:1.5rem;
+    box-shadow:3px 3px 0 var(--line); margin-bottom:2rem;}
+  .lookup-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;}
+  .form-group{display:flex;flex-direction:column;gap:.4rem;flex:1;min-width:200px;}
+  .form-group label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .form-group input{padding:.65rem .8rem;border:1.5px solid var(--line);border-radius:6px;font-size:.92rem;
+    font-family:'Inter',sans-serif;outline:none;background:#fffdf7;}
+  .form-group input:focus{border-color:var(--stamp-green);}
+  .find-btn{padding:.7rem 1.4rem;background:var(--ink);color:var(--paper);border:none;border-radius:6px;
+    font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;font-size:.9rem;}
+  .find-btn:hover{background:#3a3221;}
+
+  /* TICKET STUB */
+  .ticket{
+    position:relative; background:#fffdf7; border:1.5px solid var(--line); border-radius:6px;
+    display:grid; grid-template-columns:1fr auto; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:4px 4px 0 var(--line);
+  }
+  .ticket-main{padding:1.3rem 1.4rem;}
+  .ticket-stub{
+    width:130px; background:var(--pitch-dark); color:#fff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:1rem .6rem;
+    position:relative; border-left:2px dashed var(--paper);
+  }
+  .ticket-stub::before, .ticket-stub::after{
+    content:''; position:absolute; width:18px; height:18px; background:var(--paper); border-radius:50%; left:-9px;
+  }
+  .ticket-stub::before{top:-9px;}
+  .ticket-stub::after{bottom:-9px;}
+  .ticket-ref{font-family:'Courier Prime',monospace;font-weight:700;font-size:1.05rem;letter-spacing:1px;color:var(--floodlight);}
+  .ticket-status{margin-top:.5rem;font-size:.65rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;
+    padding:.2rem .5rem;border-radius:10px;}
+  .status-pending{background:#fff3d9;color:var(--stamp-amber);}
+  .status-confirmed{background:#e3f6e9;color:var(--stamp-green);}
+  .status-cancelled{background:#fbe4e1;color:var(--stamp-red);}
+
+  .ticket-title{font-family:'Courier Prime',monospace;font-weight:700;font-size:1.1rem;margin-bottom:.3rem;}
+  .ticket-row{display:flex;justify-content:space-between;font-size:.85rem;padding:.3rem 0;border-bottom:1px dotted var(--line);}
+  .ticket-row:last-child{border-bottom:none;}
+  .ticket-row span:first-child{color:var(--muted);}
+  .ticket-row span:last-child{font-weight:600;}
+  .ticket-amount{font-family:'Courier Prime',monospace;font-weight:700;color:var(--stamp-green);}
+
+  .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);background:#fffdf7;border:1.5px dashed var(--line);border-radius:8px;}
+  .empty-state .empty-icon{font-size:2.6rem;margin-bottom:.5rem;}
+
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--ink);color:var(--paper);padding:.8rem 1.3rem;
+    border-radius:8px;font-size:.85rem;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  footer{text-align:center;padding:1.6rem;color:var(--muted);font-size:.78rem;}
+
+  /* CRICKET BALL LOADER */
+  .page-loader{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;
+    z-index:99999;transition:opacity .3s ease, visibility .3s ease;}
+  .page-loader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+  .cricket-ball{width:46px;height:46px;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 32% 28%, #d1543f, #96271b);
+    box-shadow:0 6px 14px rgba(0,0,0,.25); animation:ball-spin .9s linear infinite;}
+  .cricket-ball::before,.cricket-ball::after{content:'';position:absolute;top:2px;bottom:2px;left:50%;width:0;
+    border-left:2px dashed rgba(255,255,255,.85);}
+  .cricket-ball::before{transform:translateX(-50%) rotate(12deg);}
+  .cricket-ball::after{transform:translateX(-50%) rotate(-12deg);}
+  @keyframes ball-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .inline-ball-loader{width:26px;height:26px;margin:2rem auto;}
+  .inline-ball-loader .cricket-ball{width:26px;height:26px;}
+
+  @media (max-width:520px){
+    .ticket{grid-template-columns:1fr;}
+    .ticket-stub{width:100%;flex-direction:row;justify-content:space-between;border-left:none;border-top:2px dashed var(--paper);padding:.7rem 1rem;}
+    .ticket-stub::before,.ticket-stub::after{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="page-loader" id="page-loader"><div class="cricket-ball"></div></div>
+
+<nav>
+  <div class="logo">Your<span>Pitch</span></div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#booking-section">Book Turf</a>
+    <a href="my-bookings.html" class="active">My Bookings</a>
+    <a href="admin.html" class="admin-link">⚙ Admin</a>
+  </div>
+</nav>
+
+<div class="header-band">
+  <h1>🎟 Booking History</h1>
+  <p>Enter your phone number to pull up every ticket you've booked at YourPitch.</p>
+</div>
+
+<div class="section">
+  <div class="lookup-card">
+    <div class="lookup-row">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="lookup-name" placeholder="Rahul Sharma"/>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="lookup-phone" placeholder="9876543210" maxlength="10"/>
+      </div>
+      <button class="find-btn" onclick="lookupBookings()">Find My Bookings</button>
+    </div>
+    <p style="font-size:.76rem;color:var(--muted);margin-top:.6rem;">Fill in either your name or your phone number (or both) to find your tickets.</p>
+  </div>
+
+  <div id="my-bookings-list">
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>Enter your phone number above to see your booking tickets.</p>
+    </div>
+  </div>
+</div>
+
+<footer>YourPitch · Box Cricket Turf · Keep your booking reference handy at the gate</footer>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDjYigTG2R78Qi7e7e_Yeog4xg5TcrFYAQ",
+  authDomain: "yourpitch-booking.firebaseapp.com",
+  projectId: "yourpitch-booking",
+  storageBucket: "yourpitch-booking.firebasestorage.app",
+  messagingSenderId: "759581542137",
+  appId: "1:759581542137:web:ddbb0944380d516b8c0428"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const bookingsCol = collection(db, 'bookings');
+
+let bookings = [];
+
+function formatHour(h){ const ampm=h<12?'AM':'PM'; const d=h===0?12:h>12?h-12:h; return `${d}:00 ${ampm}`; }
+function formatDate(dateStr){ if(!dateStr) return ''; const [y,m,d]=dateStr.split('-'); return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+function showToast(msg,type='success'){ const t=document.getElementById('toast'); t.textContent=msg; t.className=`toast show ${type}`; setTimeout(()=>t.classList.remove('show'),3000); }
+
+function lookupBookings(){
+  const name = document.getElementById('lookup-name').value.trim().toLowerCase();
+  const phone = document.getElementById('lookup-phone').value.trim();
+  const container = document.getElementById('my-bookings-list');
+
+  if(!name && !phone){ showToast('Enter your name or phone number.'); return; }
+  if(phone && !/^\d{10}$/.test(phone)){ showToast('Enter a valid 10-digit phone number.'); return; }
+
+  container.innerHTML = `<div class="inline-ball-loader"><div class="cricket-ball"></div></div>`;
+
+  setTimeout(()=>{
+    const myB = bookings.filter(b => {
+      const nameMatch = name ? b.name.trim().toLowerCase().includes(name) : true;
+      const phoneMatch = phone ? b.phone === phone : true;
+      return nameMatch && phoneMatch;
+    });
+
+    if(myB.length===0){
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No bookings found. Double-check the name/number.</p></div>`;
+      return;
+    }
+    const heading = `<h2 style="font-family:'Courier Prime',monospace;font-size:1.1rem;margin-bottom:1rem;">Booking history for ${myB[0].name}</h2>`;
+    container.innerHTML = heading + myB.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(b => `
+    <div class="ticket">
+      <div class="ticket-main">
+        <div class="ticket-title">${formatDate(b.date)}</div>
+        <div class="ticket-row"><span>Slot</span><span>${formatHour(b.fromHour)} – ${formatHour(b.toHour)} (${b.hours}h)</span></div>
+        <div class="ticket-row"><span>Booked by</span><span>${b.name}</span></div>
+        <div class="ticket-row"><span>Payment</span><span>${b.paymentMethod === 'cod' ? '💵 Cash at ground' : 'UPI · ' + (b.utr ? 'UTR ' + b.utr : 'unverified')}</span></div>
+        <div class="ticket-row"><span>Amount</span><span class="ticket-amount">₹${b.total.toLocaleString()}</span></div>
+      </div>
+      <div class="ticket-stub">
+        <div class="ticket-ref">${b.ref}</div>
+        <div class="ticket-status status-${b.status}">${b.status}</div>
+      </div>
+    </div>
+  `).join('');
+  }, 450);
+}
+
+onSnapshot(bookingsCol, (snapshot) => {
+  bookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  document.getElementById('page-loader').classList.add('hide');
+}, (err) => {
+  showToast('Connection to booking database failed.','error');
+  document.getElementById('page-loader').classList.add('hide');
+});
+
+Object.assign(window, { lookupBookings });
+</script>
+</body>
+</html>
